@@ -110,8 +110,7 @@ def get_kanji_gif(char):
 # 2. LOCAL GPU AUDIO ENGINE (Whisper)
 @st.cache_resource
 def load_whisper_model():
-    # Uses your RX 6600M via ROCm
-    return whisper.load_model("base", device="cuda")
+    return whisper.load_model("base")
 
 whisper_model = load_whisper_model()
 
