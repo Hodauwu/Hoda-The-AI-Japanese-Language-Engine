@@ -10,9 +10,10 @@ from PIL import Image, ImageDraw, ImageFont
 from streamlit_drawable_canvas import st_canvas
 import io
 import base64
-import sqlite3
 from datetime import datetime
 import json
+import streamlit as st
+from supabase import create_client, Client
 
 @st.cache_data(ttl=3600)
 def fetch_jisho_n2_data():
@@ -57,65 +58,40 @@ client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 st.set_page_config(page_title="Hoda | AI Japanese Engine", layout="wide", page_icon="🇯🇵")
 
-# --- THE MEMORY CORE (SQLite Database) ---
-def init_db():
-    conn = sqlite3.connect('hoda_memory.db')
-    c = conn.cursor()
-    
-    # 1. Mistakes table (for RAG)
-    c.execute('''CREATE TABLE IF NOT EXISTS mistakes 
-                 (id INTEGER PRIMARY KEY AUTOINCREMENT, word TEXT, error_type TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)''')
-    
-    # 2. User Accounts Table
-    c.execute('''CREATE TABLE IF NOT EXISTS users 
-                 (username TEXT PRIMARY KEY, password TEXT)''')
-                 
-    # 3. Alphabet Progress Table
-    c.execute('''CREATE TABLE IF NOT EXISTS progress 
-                 (username TEXT, char TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, UNIQUE(username, char))''')
-    conn.commit()
-    conn.close()
+# --- THE MEMORY CORE (Supabase Cloud Database) ---
+@st.cache_resource
+def init_db_connection():
+    url = st.secrets["SUPABASE_URL"]
+    key = st.secrets["SUPABASE_KEY"]
+    return create_client(url, key)
+
+supabase: Client = init_db_connection()
 
 # --- MISTAKE LOGGING (For RAG / Tab 2 & 3) ---
 def log_mistake(word, error_type):
-    """Saves a failed word/character to the database."""
-    conn = sqlite3.connect('hoda_memory.db')
-    c = conn.cursor()
-    c.execute("INSERT INTO mistakes (word, error_type) VALUES (?, ?)", (word, error_type))
-    conn.commit()
-    conn.close()
+    """Saves a failed word/character to the cloud database."""
+    supabase.table("mistakes").insert({"word": word, "error_type": error_type}).execute()
 
 def get_recent_mistakes():
     """Retrieves the top 3 most recent mistakes for the AI to use (RAG)."""
-    conn = sqlite3.connect('hoda_memory.db')
-    c = conn.cursor()
-    c.execute("SELECT word FROM mistakes GROUP BY word ORDER BY MAX(timestamp) DESC LIMIT 3")
-    results = c.fetchall()
-    conn.close()
-    return [r[0] for r in results]
+    response = supabase.table("mistakes").select("word").order("timestamp", desc=True).limit(3).execute()
+    return [r['word'] for r in response.data]
 
 # --- PROGRESS TRACKING (For User Accounts / Tab 1) ---
 def log_progress(username, char):
     """Marks a letter as learned for a specific user."""
-    conn = sqlite3.connect('hoda_memory.db')
-    c = conn.cursor()
-    c.execute("INSERT OR IGNORE INTO progress (username, char) VALUES (?, ?)", (username, char))
-    conn.commit()
-    conn.close()
+    try:
+        supabase.table("progress").insert({"username": username, "char": char}).execute()
+    except Exception:
+        # Supabase will automatically reject duplicates because of our UNIQUE constraint!
+        pass
 
 def get_learned_letters(username):
     """Returns a list of characters the user has mastered."""
     if not username:
         return []
-    conn = sqlite3.connect('hoda_memory.db')
-    c = conn.cursor()
-    c.execute("SELECT char FROM progress WHERE username = ?", (username,))
-    results = c.fetchall()
-    conn.close()
-    return [r[0] for r in results]
-
-# Initialize the database the moment the app starts
-init_db()
+    response = supabase.table("progress").select("char").eq("username", username).execute()
+    return [r['char'] for r in response.data]
 
 
 def is_kanji(char):
@@ -312,22 +288,23 @@ if not st.session_state.logged_in_user:
             login_pass = st.text_input("Password", type="password")
             if st.form_submit_button("Login / Create Account"):
                 if login_user and login_pass:
-                    # Very simple auth: If user doesn't exist, create them. If they do, log them in.
-                    conn = sqlite3.connect('hoda_memory.db')
-                    c = conn.cursor()
-                    c.execute("SELECT * FROM users WHERE username = ?", (login_user,))
-                    user = c.fetchone()
                     
-                    if not user:
-                        c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (login_user, login_pass))
-                        conn.commit()
+                    # 1. Ask Supabase if this username exists
+                    response = supabase.table("users").select("*").eq("username", login_user).execute()
+                    users_found = response.data
+                    
+                    if not users_found:
+                        # 2. If no user is found, create a new one!
+                        supabase.table("users").insert({"username": login_user, "password": login_pass}).execute()
                         st.success(f"Account created for {login_user}! Click Login again to enter.")
-                    elif user[1] == login_pass:
+                        
+                    elif users_found[0]["password"] == login_pass:
+                        # 3. If the user exists AND the password matches, let them in!
                         st.session_state.logged_in_user = login_user
                         st.rerun()
+                        
                     else:
                         st.error("Incorrect password.")
-                    conn.close()
                 else:
                     st.warning("Please enter a username and password.")
                     
