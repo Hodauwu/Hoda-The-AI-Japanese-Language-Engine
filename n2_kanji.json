@@ -1,0 +1,23 @@
+{
+  "Research (kenkyuu)": {
+    "char": "研究",
+    "meaning": "Research / Study",
+    "onyomi": "ケン, キュウ",
+    "kunyomi": "と.ぐ",
+    "gif": ""
+  },
+  "Science (kagaku)": {
+    "char": "科学",
+    "meaning": "Science",
+    "onyomi": "カ, ガク",
+    "kunyomi": "",
+    "gif": ""
+  },
+  "University (daigaku)": {
+    "char": "大学",
+    "meaning": "University",
+    "onyomi": "ダイ, ガク",
+    "kunyomi": "おお.きい",
+    "gif": ""
+  }
+}

@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.env
+hoda_memory.db
+temp_speech.wav
+hoda_env/
+hoda_env/
+__pycache__/

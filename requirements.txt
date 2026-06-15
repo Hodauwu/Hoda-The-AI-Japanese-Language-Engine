@@ -1,0 +1,8 @@
+streamlit
+streamlit-drawable-canvas
+streamlit-mic-recorder
+openai-whisper
+gTTS
+groq
+requests
+Pillow
