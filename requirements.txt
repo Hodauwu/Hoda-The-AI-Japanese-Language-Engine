@@ -7,3 +7,4 @@ groq
 requests
 Pillow
 supabase
+python-dotenv
