@@ -2,7 +2,7 @@
 
 Hoda is an advanced, immersive multi-language learning web application powered by cutting-edge AI models. Designed to take users from absolute beginner script mastery to fluid conversational practice, Hoda adapts dynamically to user mistakes, generating custom situational dialogues, handling localized voice conversations, and acting as an optical translation tool for real-world texts.
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_svg.svg)](https://github.com/Hodauwu/Hoda-The-AI-Japanese-Language-Engine)
+[![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://github.com/Hodauwu/Hoda-The-AI-Japanese-Language-Engine)
 
 ---
 
@@ -49,7 +49,7 @@ Follow these steps to deploy Hoda locally on your machine:
 
 ### 1. Clone the Repository
 ```bash
-git clone [https://github.com/Hodauwu/Hoda-The-AI-Japanese-Language-Engine.git](https://github.com/Hodauwu/Hoda-The-AI-Japanese-Language-Engine.git)
+git clone https://github.com/Hodauwu/Hoda-The-AI-Japanese-Language-Engine.git
 cd Hoda-The-AI-Japanese-Language-Engine
 ```
 
