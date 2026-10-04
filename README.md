@@ -6,6 +6,18 @@ Hoda is an advanced, immersive multi-language learning web application powered b
 
 ---
 
+## 📸 Screenshots
+
+| Alphabet Tracing Lab | Situational Scenarios |
+| :---: | :---: |
+| ![Alphabet Lab](assets/alphabet_lab.png) | ![Situational Lab](assets/situational_lab.png) |
+
+| Voice Conversation Lab | Real-World Vision Lab |
+| :---: | :---: |
+| ![Voice Lab](assets/voice_lab.png) | ![Vision Lab](assets/vision_lab.png) |
+
+---
+
 ## 🚀 Key Features
 
 Hoda breaks down language acquisition into an engineered **4-Step Laboratory System**:
